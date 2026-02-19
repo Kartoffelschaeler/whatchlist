@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Watchlist</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Movie Watchlist</h1>
+          <p>Synced across your devices</p>
+        </div>
+        <div class="access-widget">
+          <p id="access-status" class="access-status">Locked</p>
+          <button id="clear-secret-btn" class="ghost-btn hidden" type="button">Change password</button>
+        </div>
+      </header>
+
+      <main id="app-main">
+        <section class="section-block">
+          <div class="section-head">
+            <h2>Watchlist</h2>
+            <span id="watchlist-count" class="count-pill">0</span>
+          </div>
+          <div id="watchlist-grid" class="movie-grid"></div>
+        </section>
+
+        <section class="section-block watched-section">
+          <div class="section-head">
+            <h2>Watched</h2>
+            <span id="watched-count" class="count-pill">0</span>
+          </div>
+          <div id="watched-grid" class="movie-grid"></div>
+        </section>
+      </main>
+
+      <footer class="footer-note">
+        This product uses the TMDB API but is not endorsed or certified by TMDB.
+      </footer>
+    </div>
+
+    <button id="add-movie-btn" class="fab hidden" type="button" aria-label="Add movie">+</button>
+
+    <div id="search-modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal="search"></div>
+      <div class="modal-panel search-panel" role="dialog" aria-modal="true" aria-labelledby="search-title">
+        <div class="modal-head">
+          <h3 id="search-title">Add movie</h3>
+          <button class="icon-btn" type="button" data-close-modal="search" aria-label="Close search modal">
+            x
+          </button>
+        </div>
+        <form id="search-form" class="search-form">
+          <label class="sr-only" for="search-input">Search movies</label>
+          <input id="search-input" type="search" placeholder="Search movies..." autocomplete="off" />
+        </form>
+        <div id="search-results" class="search-results"></div>
+      </div>
+    </div>
+
+    <div id="movie-modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal="movie"></div>
+      <div class="modal-panel detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <div class="modal-head">
+          <h3 id="detail-title">Movie Details</h3>
+          <button class="icon-btn" type="button" data-close-modal="movie" aria-label="Close movie details">
+            x
+          </button>
+        </div>
+        <div id="movie-modal-content" class="detail-content"></div>
+      </div>
+    </div>
+
+    <div id="secret-modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel secret-panel" role="dialog" aria-modal="true" aria-labelledby="secret-title">
+        <div class="modal-head">
+          <h3 id="secret-title">Enter password</h3>
+        </div>
+        <form id="secret-form" class="secret-form">
+          <p>Enter the shared password to unlock this watchlist.</p>
+          <label class="sr-only" for="secret-input">Password</label>
+          <input id="secret-input" type="password" autocomplete="current-password" required />
+          <button id="secret-submit-btn" type="submit">Unlock</button>
+          <p id="secret-error" class="secret-error hidden"></p>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+  </body>
+</html>
