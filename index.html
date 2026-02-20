@@ -7,15 +7,28 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="app.js" defer></script>
   </head>
-  <body>
+  <body class="is-locked">
+    <div id="lock-screen" class="lock-screen" aria-hidden="true">
+      <div class="lock-card">
+        <p class="lock-title">Enter password</p>
+        <form id="lock-form" class="lock-form">
+          <label class="sr-only" for="lock-input">Password</label>
+          <input id="lock-input" type="password" autocomplete="current-password" placeholder="Shared password" />
+          <button id="lock-submit-btn" type="submit">Unlock</button>
+        </form>
+        <p id="lock-error" class="lock-error hidden" role="alert" aria-live="assertive"></p>
+      </div>
+    </div>
+
     <div class="app-shell">
       <header class="topbar">
-        <div class="brand">
-          <h1>Movie Watchlist</h1>
-          <p>Synced across your devices</p>
-        </div>
         <div class="access-widget">
           <p id="access-status" class="access-status">Locked</p>
+          <form id="secret-inline-form" class="secret-inline-form">
+            <label class="sr-only" for="secret-inline-input">Shared password</label>
+            <input id="secret-inline-input" type="password" autocomplete="current-password" placeholder="Password" />
+            <button id="secret-inline-submit-btn" type="submit">Unlock</button>
+          </form>
           <button id="clear-secret-btn" class="ghost-btn hidden" type="button">Change password</button>
         </div>
       </header>
@@ -36,14 +49,20 @@
           </div>
           <div id="watched-grid" class="movie-grid"></div>
         </section>
+
+        <section class="section-block add-tile-section">
+          <button id="add-movie-tile" class="add-movie-tile" type="button">
+            <span class="add-tile-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <span class="add-tile-text">Add movie</span>
+          </button>
+        </section>
       </main>
 
-      <footer class="footer-note">
-        This product uses the TMDB API but is not endorsed or certified by TMDB.
-      </footer>
     </div>
-
-    <button id="add-movie-btn" class="fab hidden" type="button" aria-label="Add movie">+</button>
 
     <div id="search-modal" class="modal" aria-hidden="true">
       <div class="modal-backdrop" data-close-modal="search"></div>
@@ -51,7 +70,9 @@
         <div class="modal-head">
           <h3 id="search-title">Add movie</h3>
           <button class="icon-btn" type="button" data-close-modal="search" aria-label="Close search modal">
-            x
+            <svg class="icon-close" viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+              <path d="M5 5l10 10M15 5L5 15" />
+            </svg>
           </button>
         </div>
         <form id="search-form" class="search-form">
@@ -68,26 +89,61 @@
         <div class="modal-head">
           <h3 id="detail-title">Movie Details</h3>
           <button class="icon-btn" type="button" data-close-modal="movie" aria-label="Close movie details">
-            x
+            <svg class="icon-close" viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+              <path d="M5 5l10 10M15 5L5 15" />
+            </svg>
           </button>
         </div>
         <div id="movie-modal-content" class="detail-content"></div>
       </div>
     </div>
 
-    <div id="secret-modal" class="modal" aria-hidden="true">
-      <div class="modal-backdrop"></div>
-      <div class="modal-panel secret-panel" role="dialog" aria-modal="true" aria-labelledby="secret-title">
+    <div id="trailer-modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal="trailer"></div>
+      <div class="modal-panel trailer-panel" role="dialog" aria-modal="true" aria-labelledby="trailer-title">
         <div class="modal-head">
-          <h3 id="secret-title">Enter password</h3>
+          <h3 id="trailer-title">Trailer</h3>
+          <button class="icon-btn" type="button" data-close-modal="trailer" aria-label="Close trailer">
+            <svg class="icon-close" viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+              <path d="M5 5l10 10M15 5L5 15" />
+            </svg>
+          </button>
         </div>
-        <form id="secret-form" class="secret-form">
-          <p>Enter the shared password to unlock this watchlist.</p>
-          <label class="sr-only" for="secret-input">Password</label>
-          <input id="secret-input" type="password" autocomplete="current-password" required />
-          <button id="secret-submit-btn" type="submit">Unlock</button>
-          <p id="secret-error" class="secret-error hidden"></p>
-        </form>
+        <div class="trailer-modal-body">
+          <div class="trailer-modal-frame-wrap">
+            <iframe
+              id="trailer-iframe"
+              title="Movie trailer"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <a
+            id="trailer-fallback-link"
+            class="trailer-fallback-link"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Watch on YouTube
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="poster-modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal="poster"></div>
+      <div class="modal-panel poster-panel" role="dialog" aria-modal="true" aria-labelledby="poster-title">
+        <div class="modal-head">
+          <button class="icon-btn" type="button" data-close-modal="poster" aria-label="Close poster">
+            <svg class="icon-close" viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+              <path d="M5 5l10 10M15 5L5 15" />
+            </svg>
+          </button>
+        </div>
+        <div class="poster-modal-body">
+          <img id="poster-modal-image" alt="Poster full screen view" />
+        </div>
       </div>
     </div>
 

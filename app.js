@@ -1,11 +1,127 @@
 (() => {
   "use strict";
 
+  const PREVIEW_MODE = false;
   const APP_SECRET_KEY = "app_secret";
   const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
   const WIKI_API = "https://en.wikipedia.org/w/api.php";
   const WIKI_BASE = "https://en.wikipedia.org/wiki/";
   const WIKI_SEARCH = "https://en.wikipedia.org/wiki/Special:Search?search=";
+  const DEMO_MOVIES = [
+    {
+      id: 1,
+      tmdb_id: 27205,
+      title: "Inception",
+      poster_url: "https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+      watched: false,
+      rating: 4.5,
+      release_date: "2010-07-15",
+      runtime: 148,
+      tagline: "Your mind is the scene of the crime.",
+      overview:
+        "A skilled thief enters shared dream worlds to steal secrets and is offered one last impossible job.",
+      director: "Christopher Nolan",
+      cast: ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page", "Tom Hardy"],
+      genres: ["Science Fiction", "Action", "Thriller"],
+      trailer_url: "https://www.youtube.com/embed/YoHD9XEInc0",
+      created_at: "2025-01-12T09:00:00.000Z",
+      updated_at: "2025-01-12T09:00:00.000Z",
+    },
+    {
+      id: 2,
+      tmdb_id: 157336,
+      title: "Interstellar",
+      poster_url: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+      watched: true,
+      rating: 5.0,
+      release_date: "2014-11-05",
+      runtime: 169,
+      tagline: "Mankind was born on Earth. It was never meant to die here.",
+      overview:
+        "A former pilot joins a mission through a wormhole to find a new habitable world for humanity.",
+      director: "Christopher Nolan",
+      cast: ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain", "Mackenzie Foy"],
+      genres: ["Adventure", "Drama", "Science Fiction"],
+      trailer_url: "https://www.youtube.com/embed/zSWdZVtXT7E",
+      created_at: "2025-01-09T09:00:00.000Z",
+      updated_at: "2025-01-18T17:00:00.000Z",
+    },
+    {
+      id: 3,
+      tmdb_id: 414906,
+      title: "The Batman",
+      poster_url: "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+      watched: false,
+      rating: 3.5,
+      release_date: "2022-03-01",
+      runtime: 177,
+      tagline: "Unmask the truth.",
+      overview:
+        "Batman uncovers a web of corruption in Gotham while tracking a serial killer targeting city elites.",
+      director: "Matt Reeves",
+      cast: ["Robert Pattinson", "Zoë Kravitz", "Paul Dano", "Jeffrey Wright"],
+      genres: ["Crime", "Mystery", "Thriller"],
+      trailer_url: "https://www.youtube.com/embed/mqqft2x_Aa4",
+      created_at: "2025-01-15T09:00:00.000Z",
+      updated_at: "2025-01-15T09:00:00.000Z",
+    },
+    {
+      id: 4,
+      tmdb_id: 438631,
+      title: "Dune",
+      poster_url: "https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg",
+      watched: true,
+      rating: 4.0,
+      release_date: "2021-09-15",
+      runtime: 155,
+      tagline: "Beyond fear, destiny awaits.",
+      overview:
+        "A noble family is thrust into war over the most valuable resource in the universe on a desert planet.",
+      director: "Denis Villeneuve",
+      cast: ["Timothée Chalamet", "Rebecca Ferguson", "Oscar Isaac", "Zendaya"],
+      genres: ["Science Fiction", "Adventure", "Drama"],
+      trailer_url: "https://www.youtube.com/embed/n9xhJrPXop4",
+      created_at: "2025-01-07T09:00:00.000Z",
+      updated_at: "2025-01-19T11:30:00.000Z",
+    },
+  ];
+  const PREVIEW_SEARCH_CATALOG = [
+    ...DEMO_MOVIES,
+    {
+      id: 5,
+      tmdb_id: 329865,
+      title: "Arrival",
+      poster_url: "https://image.tmdb.org/t/p/w500/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg",
+      watched: false,
+      rating: null,
+      runtime: 116,
+      tagline: "Why are they here?",
+      overview:
+        "A linguist is recruited to communicate with mysterious visitors and uncover the meaning of their arrival.",
+      director: "Denis Villeneuve",
+      cast: ["Amy Adams", "Jeremy Renner", "Forest Whitaker"],
+      genres: ["Science Fiction", "Drama"],
+      trailer_url: "https://www.youtube.com/embed/tFMo3UJ4B4g",
+      release_date: "2016-11-10",
+    },
+    {
+      id: 6,
+      tmdb_id: 286217,
+      title: "The Martian",
+      poster_url: "https://image.tmdb.org/t/p/w500/5aGhaIHYuQbqlHWvWYqMCnj40y2.jpg",
+      watched: false,
+      rating: null,
+      runtime: 141,
+      tagline: "Bring him home.",
+      overview:
+        "An astronaut stranded on Mars must survive alone while Earth races to bring him home.",
+      director: "Ridley Scott",
+      cast: ["Matt Damon", "Jessica Chastain", "Chiwetel Ejiofor"],
+      genres: ["Drama", "Adventure", "Science Fiction"],
+      trailer_url: "https://www.youtube.com/embed/ej3ioOneTy8",
+      release_date: "2015-09-30",
+    },
+  ];
 
   const state = {
     appSecret: "",
@@ -18,8 +134,12 @@
     searchError: "",
     searchAbortController: null,
     activeMovieId: null,
+    activeTrailerEmbedUrl: "",
+    activeTrailerWatchUrl: "",
+    activePosterUrl: "",
     pendingMovieIds: new Set(),
     detailCache: new Map(),
+    previewNextId: 1000,
     syncTimer: null,
     toastTimer: null,
   };
@@ -31,25 +151,63 @@
   async function init() {
     cacheDom();
     bindEvents();
+
+    if (PREVIEW_MODE) {
+      enterPreviewMode();
+      return;
+    }
+
     renderLockedState();
 
     const savedSecret = getStoredSecret();
     if (savedSecret) {
       await unlockWithSecret(savedSecret, true);
+      if (!state.unlocked) {
+        dom.lockInput.focus();
+      }
       return;
     }
 
-    promptForSecret();
+    dom.lockInput.focus();
+  }
+
+  function enterPreviewMode() {
+    state.unlocked = true;
+    state.appSecret = "preview-mode";
+    state.movies = cloneMovies(DEMO_MOVIES);
+    state.previewNextId = Math.max(...state.movies.map((movie) => Number(movie.id)), 0) + 1;
+    dom.accessStatus.textContent = "Preview mode";
+    dom.secretInlineForm.classList.add("hidden");
+    dom.clearSecretBtn.classList.add("hidden");
+    dom.addMovieTile.classList.remove("hidden");
+    setLockError("");
+    setLockedUi(false);
+    renderMovieSections();
+  }
+
+  function cloneMovies(movies) {
+    return movies.map((movie) => ({
+      ...movie,
+      cast: Array.isArray(movie.cast) ? [...movie.cast] : [],
+      genres: Array.isArray(movie.genres) ? [...movie.genres] : [],
+    }));
   }
 
   function cacheDom() {
+    dom.lockScreen = document.getElementById("lock-screen");
+    dom.lockForm = document.getElementById("lock-form");
+    dom.lockInput = document.getElementById("lock-input");
+    dom.lockSubmitBtn = document.getElementById("lock-submit-btn");
+    dom.lockError = document.getElementById("lock-error");
+
     dom.accessStatus = document.getElementById("access-status");
     dom.clearSecretBtn = document.getElementById("clear-secret-btn");
+    dom.secretInlineForm = document.getElementById("secret-inline-form");
     dom.watchlistGrid = document.getElementById("watchlist-grid");
     dom.watchedGrid = document.getElementById("watched-grid");
     dom.watchlistCount = document.getElementById("watchlist-count");
     dom.watchedCount = document.getElementById("watched-count");
-    dom.addMovieBtn = document.getElementById("add-movie-btn");
+    dom.addMovieTile = document.getElementById("add-movie-tile");
 
     dom.searchModal = document.getElementById("search-modal");
     dom.searchForm = document.getElementById("search-form");
@@ -58,21 +216,20 @@
 
     dom.movieModal = document.getElementById("movie-modal");
     dom.movieModalContent = document.getElementById("movie-modal-content");
-
-    dom.secretModal = document.getElementById("secret-modal");
-    dom.secretForm = document.getElementById("secret-form");
-    dom.secretInput = document.getElementById("secret-input");
-    dom.secretSubmitBtn = document.getElementById("secret-submit-btn");
-    dom.secretError = document.getElementById("secret-error");
+    dom.trailerModal = document.getElementById("trailer-modal");
+    dom.trailerIframe = document.getElementById("trailer-iframe");
+    dom.trailerFallbackLink = document.getElementById("trailer-fallback-link");
+    dom.posterModal = document.getElementById("poster-modal");
+    dom.posterModalImage = document.getElementById("poster-modal-image");
 
     dom.toast = document.getElementById("toast");
   }
 
   function bindEvents() {
-    dom.clearSecretBtn.addEventListener("click", clearPasswordAndReload);
-    dom.addMovieBtn.addEventListener("click", openSearchModal);
+    dom.clearSecretBtn.addEventListener("click", onChangePasswordClick);
+    dom.addMovieTile.addEventListener("click", openSearchModal);
 
-    dom.secretForm.addEventListener("submit", onSecretSubmit);
+    dom.lockForm.addEventListener("submit", onSecretSubmit);
     dom.searchForm.addEventListener("submit", (event) => event.preventDefault());
 
     dom.watchlistGrid.addEventListener("click", onMovieGridClick);
@@ -106,17 +263,36 @@
   function renderLockedState() {
     state.unlocked = false;
     dom.accessStatus.textContent = "Locked";
+    dom.secretInlineForm.classList.add("hidden");
     dom.clearSecretBtn.classList.add("hidden");
-    dom.addMovieBtn.classList.add("hidden");
-    document.body.classList.add("locked");
+    dom.addMovieTile.classList.add("hidden");
+    setLockedUi(true);
     renderMovieSections();
   }
 
-  async function unlockWithSecret(secret, fromStorage) {
-    state.appSecret = secret;
-    clearSecretError();
+  function setLockedUi(isLocked) {
+    document.body.classList.toggle("is-locked", isLocked);
+    dom.lockScreen.setAttribute("aria-hidden", isLocked ? "false" : "true");
+  }
 
-    dom.secretSubmitBtn.disabled = true;
+  function setLockError(message) {
+    if (message) {
+      dom.lockError.textContent = String(message);
+      dom.lockError.classList.remove("hidden");
+      return;
+    }
+    dom.lockError.textContent = "";
+    dom.lockError.classList.add("hidden");
+  }
+
+  async function unlockWithSecret(secret, fromStorage) {
+    if (PREVIEW_MODE) {
+      return;
+    }
+
+    state.appSecret = secret;
+    setLockError("");
+    dom.lockSubmitBtn.disabled = true;
 
     try {
       const data = await apiRequest("/api/movies", {
@@ -127,11 +303,11 @@
       state.unlocked = true;
       localStorage.setItem(APP_SECRET_KEY, secret);
       dom.accessStatus.textContent = "Unlocked";
+      dom.secretInlineForm.classList.add("hidden");
       dom.clearSecretBtn.classList.remove("hidden");
-      dom.addMovieBtn.classList.remove("hidden");
-      document.body.classList.remove("locked");
-
-      closeModal(dom.secretModal);
+      dom.addMovieTile.classList.remove("hidden");
+      setLockedUi(false);
+      dom.lockInput.value = "";
 
       state.movies = Array.isArray(data.movies) ? data.movies : [];
       renderMovieSections();
@@ -150,46 +326,60 @@
       const message = fromStorage
         ? "Saved password is invalid. Enter password again."
         : error.message || "Could not unlock with this password.";
-      showSecretError(message);
-      promptForSecret();
+      setLockError(message);
+      dom.lockInput.focus();
     } finally {
-      dom.secretSubmitBtn.disabled = false;
+      dom.lockSubmitBtn.disabled = false;
     }
   }
 
-  function promptForSecret() {
-    openModal(dom.secretModal);
-    dom.secretInput.focus();
-  }
+  function onChangePasswordClick() {
+    if (PREVIEW_MODE) {
+      state.movies = cloneMovies(DEMO_MOVIES);
+      state.detailCache.clear();
+      state.previewNextId = Math.max(...state.movies.map((movie) => Number(movie.id)), 0) + 1;
+      closeModal(dom.searchModal);
+      closeModal(dom.movieModal);
+      closeModal(dom.trailerModal);
+      closeModal(dom.posterModal);
+      resetTrailerPlayer();
+      renderMovieSections();
+      showToast("Preview reset.");
+      return;
+    }
 
-  function clearPasswordAndReload() {
     localStorage.removeItem(APP_SECRET_KEY);
-    window.location.reload();
+    state.appSecret = "";
+    stopSyncPolling();
+    closeModal(dom.searchModal);
+    closeModal(dom.movieModal);
+    closeModal(dom.trailerModal);
+    closeModal(dom.posterModal);
+    resetTrailerPlayer();
+    renderLockedState();
+    setLockError("");
+    dom.lockInput.value = "";
+    dom.lockInput.focus();
   }
 
   async function onSecretSubmit(event) {
     event.preventDefault();
-    const secret = String(dom.secretInput.value || "").trim();
+    const secret = String(dom.lockInput.value || "").trim();
 
     if (!secret) {
-      showSecretError("Please enter the shared password.");
+      setLockError("Please enter the shared password.");
+      dom.lockInput.focus();
       return;
     }
 
     await unlockWithSecret(secret, false);
   }
 
-  function showSecretError(message) {
-    dom.secretError.textContent = message;
-    dom.secretError.classList.remove("hidden");
-  }
-
-  function clearSecretError() {
-    dom.secretError.textContent = "";
-    dom.secretError.classList.add("hidden");
-  }
-
   function startSyncPolling() {
+    if (PREVIEW_MODE) {
+      return;
+    }
+
     stopSyncPolling();
 
     state.syncTimer = setInterval(() => {
@@ -209,6 +399,11 @@
 
   async function loadMovies(options = {}) {
     if (!state.unlocked) {
+      return;
+    }
+
+    if (PREVIEW_MODE) {
+      renderMovieSections();
       return;
     }
 
@@ -336,14 +531,19 @@
 
     state.pendingMovieIds.add(movieId);
 
-    const firstPositions = captureCardPositions();
+    const flipState = captureFlipState();
     const previousWatched = movie.watched;
     const previousUpdatedAt = movie.updated_at;
 
     movie.watched = watched;
     movie.updated_at = new Date().toISOString();
     renderMovieSections();
-    playFlip(firstPositions, movieId);
+    playFlip(flipState, movieId);
+
+    if (PREVIEW_MODE) {
+      state.pendingMovieIds.delete(movieId);
+      return;
+    }
 
     try {
       const data = await apiRequest("/api/movies", {
@@ -364,19 +564,38 @@
     }
   }
 
-  function captureCardPositions() {
-    const positions = new Map();
+  // FLIP animation helper for smooth watched/unwatched reordering.
+  function captureFlipState() {
+    const cardRects = new Map();
     document.querySelectorAll(".movie-card[data-id]").forEach((card) => {
-      positions.set(card.getAttribute("data-id"), card.getBoundingClientRect());
+      cardRects.set(card.getAttribute("data-id"), card.getBoundingClientRect());
     });
-    return positions;
+
+    return {
+      cardRects,
+      watchlistHeight: dom.watchlistGrid.offsetHeight,
+      watchedHeight: dom.watchedGrid.offsetHeight,
+    };
   }
 
-  function playFlip(firstPositions, highlightMovieId) {
+  function playFlip(flipState, highlightMovieId) {
+    const watchlistTargetHeight = dom.watchlistGrid.offsetHeight;
+    const watchedTargetHeight = dom.watchedGrid.offsetHeight;
+
+    dom.watchlistGrid.style.height = `${flipState.watchlistHeight}px`;
+    dom.watchedGrid.style.height = `${flipState.watchedHeight}px`;
+    dom.watchlistGrid.style.overflow = "hidden";
+    dom.watchedGrid.style.overflow = "hidden";
+
     requestAnimationFrame(() => {
+      dom.watchlistGrid.style.height = `${watchlistTargetHeight}px`;
+      dom.watchedGrid.style.height = `${watchedTargetHeight}px`;
+      dom.watchlistGrid.style.transition = "height 260ms cubic-bezier(0.2, 0.75, 0, 1)";
+      dom.watchedGrid.style.transition = "height 260ms cubic-bezier(0.2, 0.75, 0, 1)";
+
       document.querySelectorAll(".movie-card[data-id]").forEach((card) => {
         const movieId = card.getAttribute("data-id");
-        const first = firstPositions.get(movieId);
+        const first = flipState.cardRects.get(movieId);
         const last = card.getBoundingClientRect();
 
         if (!first) {
@@ -412,11 +631,20 @@
         }
       }
     });
+
+    window.setTimeout(() => {
+      dom.watchlistGrid.style.height = "";
+      dom.watchedGrid.style.height = "";
+      dom.watchlistGrid.style.transition = "";
+      dom.watchedGrid.style.transition = "";
+      dom.watchlistGrid.style.overflow = "";
+      dom.watchedGrid.style.overflow = "";
+    }, 320);
   }
 
   function openSearchModal() {
     if (!state.unlocked) {
-      promptForSecret();
+      showToast("Enter the shared password to unlock.", true);
       return;
     }
 
@@ -451,23 +679,50 @@
     state.searchLoading = true;
     renderSearchResults();
 
-    try {
-      const data = await apiRequest("/api/tmdb-search", {
-        method: "GET",
-        query: { q: query },
-        signal: controller.signal,
-      });
-      state.searchResults = Array.isArray(data.results) ? data.results : [];
+    if (PREVIEW_MODE) {
+      const normalized = query.toLowerCase();
+      state.searchResults = PREVIEW_SEARCH_CATALOG.filter((movie) =>
+        String(movie.title || "")
+          .toLowerCase()
+          .includes(normalized)
+      ).map((movie) => ({
+        id: movie.tmdb_id || movie.id,
+        title: movie.title,
+        original_title: movie.title,
+        release_date: movie.release_date || "",
+        runtime: movie.runtime || null,
+        tagline: movie.tagline || "",
+        poster_url: movie.poster_url || "",
+        overview: movie.overview || "",
+        director: movie.director || "Unknown",
+        cast: Array.isArray(movie.cast) ? movie.cast.slice(0, 10) : [],
+        genres: Array.isArray(movie.genres) ? [...movie.genres] : [],
+        trailer_url: movie.trailer_url || "",
+      }));
       state.searchLoading = false;
       renderSearchResults();
-    } catch (error) {
-      if (error.name === "AbortError") {
-        return;
+      return;
+    }
+
+    if (!PREVIEW_MODE) {
+      try {
+        const data = await apiRequest("/api/tmdb-search", {
+          method: "GET",
+          query: { q: query },
+          signal: controller.signal,
+        });
+        state.searchResults = Array.isArray(data.results) ? data.results : [];
+        state.searchLoading = false;
+        renderSearchResults();
+      } catch (error) {
+        if (error.name === "AbortError") {
+          return;
+        }
+        state.searchResults = [];
+        state.searchLoading = false;
+        state.searchError = error.message || "Search failed.";
+        renderSearchResults();
       }
-      state.searchResults = [];
-      state.searchLoading = false;
-      state.searchError = error.message || "Search failed.";
-      renderSearchResults();
     }
   }
 
@@ -490,7 +745,7 @@
     dom.searchResults.innerHTML = state.searchResults
       .map((result) => {
         const releaseYear = formatYear(result.release_date);
-        const posterUrl = result.poster_path ? `${IMAGE_BASE}${result.poster_path}` : "";
+        const posterUrl = result.poster_url || (result.poster_path ? `${IMAGE_BASE}${result.poster_path}` : "");
         const alreadyAdded = state.movies.some((movie) => Number(movie.tmdb_id) === Number(result.id));
 
         return `
@@ -545,21 +800,58 @@
     addBtn.textContent = "Adding...";
 
     try {
-      const data = await apiRequest("/api/movies", {
-        method: "POST",
-        body: { tmdb_id: tmdbId },
-      });
+      if (PREVIEW_MODE) {
+        const result = state.searchResults.find((item) => Number(item.id) === tmdbId);
+        if (!result) {
+          throw new Error("Movie not found in preview catalog.");
+        }
 
-      if (!data.movie) {
-        throw new Error("Could not add movie.");
+        const createdAt = new Date().toISOString();
+        const previewMovie = {
+          id: state.previewNextId++,
+          tmdb_id: tmdbId,
+          title: result.title || result.original_title || "Untitled",
+          poster_url: result.poster_url || (result.poster_path ? `${IMAGE_BASE}${result.poster_path}` : null),
+          watched: false,
+          rating: null,
+          release_date: result.release_date || "",
+          runtime: result.runtime || null,
+          tagline: result.tagline || "",
+          overview: result.overview || "No description available for this movie.",
+          director: result.director || "Unknown",
+          cast: Array.isArray(result.cast) ? result.cast.slice(0, 10) : [],
+          genres: Array.isArray(result.genres) ? [...result.genres] : [],
+          trailer_url: result.trailer_url || "",
+          created_at: createdAt,
+          updated_at: createdAt,
+        };
+
+        const flipState = captureFlipState();
+        upsertMovie(previewMovie, true);
+        renderMovieSections();
+        playFlip(flipState, previewMovie.id);
+        renderSearchResults();
+        showToast("Movie added.");
+        return;
       }
 
-      const firstPositions = captureCardPositions();
-      upsertMovie(data.movie, true);
-      renderMovieSections();
-      playFlip(firstPositions, data.movie.id);
-      renderSearchResults();
-      showToast("Movie added.");
+      if (!PREVIEW_MODE) {
+        const data = await apiRequest("/api/movies", {
+          method: "POST",
+          body: { tmdb_id: tmdbId },
+        });
+
+        if (!data.movie) {
+          throw new Error("Could not add movie.");
+        }
+
+        const flipState = captureFlipState();
+        upsertMovie(data.movie, true);
+        renderMovieSections();
+        playFlip(flipState, data.movie.id);
+        renderSearchResults();
+        showToast("Movie added.");
+      }
     } catch (error) {
       if (error.code === 409) {
         showToast("Movie already exists in your watchlist.");
@@ -589,7 +881,7 @@
 
   async function openMovieDetails(movieId) {
     if (!state.unlocked) {
-      promptForSecret();
+      showToast("Enter the shared password to unlock.", true);
       return;
     }
 
@@ -626,6 +918,14 @@
   }
 
   async function getMovieDetailBundle(tmdbId) {
+    if (PREVIEW_MODE) {
+      const movie = state.movies.find((item) => Number(item.tmdb_id) === Number(tmdbId));
+      if (!movie) {
+        throw new Error("Movie details unavailable in preview mode.");
+      }
+      return buildPreviewDetailBundle(movie);
+    }
+
     const cacheKey = String(tmdbId);
     if (state.detailCache.has(cacheKey)) {
       return state.detailCache.get(cacheKey);
@@ -657,68 +957,99 @@
     const cast = Array.isArray(credits.cast) ? credits.cast.slice(0, 10) : [];
     const genres = Array.isArray(movie.genres) ? movie.genres : [];
     const trailerKey = findYoutubeTrailerKey(videos.results || []);
+    const trailerWatchUrl = trailerKey ? `https://www.youtube.com/watch?v=${encodeURIComponent(trailerKey)}` : "";
+    const releaseYear = formatYear(movie.release_date || movieRow.release_date || "");
+    const topMeta = `${releaseYear !== "Release date unknown" ? releaseYear : "Year unknown"} • directed by ${
+      director?.name || movieRow.director || "Unknown"
+    }`;
+    const runtimeLabel = formatRuntime(movie.runtime || movieRow.runtime);
+    const tagline = movie.tagline || movieRow.tagline || "";
+    const overview = movie.overview || movieRow.overview || "No description available for this movie.";
+    const posterUrl = movieRow.poster_url || "";
+    const trailerUnavailable = !trailerKey;
+    const castHtml = cast.length
+      ? cast
+          .map(
+            (person) => `
+              <button type="button" class="actor-btn" data-actor-name="${escapeHtml(person.name)}">
+                ${escapeHtml(person.name)}
+              </button>
+            `
+          )
+          .join("")
+      : '<p class="meta-note">Cast unavailable.</p>';
 
     dom.movieModalContent.innerHTML = `
-      <div class="detail-layout">
-        <h2 class="detail-title">${escapeHtml(movieRow.title)}</h2>
-        <div class="detail-grid">
-          <div class="trailer-wrap">
-            ${
-              trailerKey
-                ? `<iframe src="https://www.youtube.com/embed/${escapeHtml(
-                    trailerKey
-                  )}" title="Trailer for ${escapeHtml(
-                    movieRow.title
-                  )}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
-                : '<div class="trailer-fallback">No trailer available.</div>'
-            }
+      <div class="detail-shell">
+        <div class="detail-hero">
+          <div class="detail-hero-left">
+            <h2 class="detail-title">${escapeHtml(movieRow.title)}</h2>
+            <p class="detail-topline">${escapeHtml(topMeta)}</p>
+
+            <div class="detail-actions">
+              <button
+                type="button"
+                class="trailer-btn"
+                data-open-trailer="true"
+                data-trailer-key="${escapeHtml(trailerKey)}"
+                data-trailer-watch="${escapeHtml(trailerWatchUrl)}"
+                data-trailer-title="${escapeHtml(movieRow.title)}"
+                ${trailerUnavailable ? "disabled" : ""}
+              >
+                ${trailerUnavailable ? "Trailer unavailable" : "Trailer"}
+              </button>
+              <span class="runtime-badge">${escapeHtml(runtimeLabel)}</span>
+            </div>
           </div>
-          <div>
-            <p class="overview">${escapeHtml(movie.overview || "No description available for this movie.")}</p>
 
-            <div class="meta-row">
-              <p class="meta-label">Director</p>
-              <p class="meta-value">${escapeHtml(director?.name || "Unknown")}</p>
-            </div>
+          ${
+            posterUrl
+              ? `
+                <button
+                  type="button"
+                  class="detail-poster-btn"
+                  data-open-poster="true"
+                  data-poster-url="${escapeHtml(posterUrl)}"
+                  data-poster-title="${escapeHtml(movieRow.title)}"
+                >
+                  <img class="detail-poster" src="${escapeHtml(posterUrl)}" alt="Poster for ${escapeHtml(
+                  movieRow.title
+                )}" loading="lazy" />
+                </button>
+              `
+              : `<div class="detail-poster-placeholder">Poster unavailable</div>`
+          }
+        </div>
 
-            <div class="meta-row">
-              <p class="meta-label">Cast</p>
-              <div class="cast-wrap">
-                ${
-                  cast.length
-                    ? cast
-                        .map(
-                          (person) => `
-                            <button type="button" class="actor-btn" data-actor-name="${escapeHtml(person.name)}">
-                              ${escapeHtml(person.name)}
-                            </button>
-                          `
-                        )
-                        .join("")
-                    : '<span class="chip">No cast data</span>'
-                }
-              </div>
-            </div>
+        <div class="detail-text">
+          ${tagline ? `<p class="detail-tagline">${escapeHtml(tagline)}</p>` : ""}
+          <p class="overview">${escapeHtml(overview)}</p>
+        </div>
 
-            <div class="meta-row">
-              <p class="meta-label">Genres</p>
-              <div class="chip-wrap">
-                ${
-                  genres.length
-                    ? genres.map((genre) => `<span class="chip">${escapeHtml(genre.name)}</span>`).join("")
-                    : '<span class="chip">Unknown</span>'
-                }
-              </div>
+        <div class="detail-lower">
+          <div class="meta-row">
+            <p class="meta-label">Genres</p>
+            <div class="chip-wrap">
+              ${
+                genres.length
+                  ? genres.map((genre) => `<span class="chip">${escapeHtml(genre.name)}</span>`).join("")
+                  : '<span class="chip">Unknown</span>'
+              }
             </div>
+          </div>
 
-            <div class="meta-row">
-              <p class="meta-label">Your rating</p>
-              <div class="rating-wrap">
-                <div class="rating-stars" data-rating-stars="true">${renderRatingStars(movieRow.rating)}</div>
-                <button type="button" class="clear-rating-btn" data-clear-rating="true">Clear</button>
-              </div>
-              <p class="rating-value">${formatRating(movieRow.rating)}</p>
+          <div class="meta-row">
+            <p class="meta-label">Cast</p>
+            <div class="cast-wrap">${castHtml}</div>
+          </div>
+
+          <div class="meta-row">
+            <p class="meta-label">Your rating</p>
+            <div class="rating-wrap">
+              <div class="rating-stars" data-rating-stars="true">${renderRatingStars(movieRow.rating)}</div>
+              <button type="button" class="clear-rating-btn" data-clear-rating="true">Clear</button>
             </div>
+            <p class="rating-value">${formatRating(movieRow.rating)}</p>
           </div>
         </div>
       </div>
@@ -726,6 +1057,27 @@
   }
 
   function onMovieModalContentClick(event) {
+    const trailerButton = event.target.closest("[data-open-trailer]");
+    if (trailerButton) {
+      const trailerKey = trailerButton.getAttribute("data-trailer-key") || "";
+      const trailerWatch = trailerButton.getAttribute("data-trailer-watch") || "";
+      const trailerTitle = trailerButton.getAttribute("data-trailer-title") || "Trailer";
+      if (trailerKey) {
+        openTrailerModal(trailerKey, trailerTitle, trailerWatch);
+      }
+      return;
+    }
+
+    const posterButton = event.target.closest("[data-open-poster]");
+    if (posterButton) {
+      const posterUrl = posterButton.getAttribute("data-poster-url") || "";
+      const posterTitle = posterButton.getAttribute("data-poster-title") || "Poster";
+      if (posterUrl) {
+        openPosterModal(posterUrl, posterTitle);
+      }
+      return;
+    }
+
     const actorButton = event.target.closest("[data-actor-name]");
     if (actorButton) {
       const actorName = actorButton.getAttribute("data-actor-name");
@@ -794,6 +1146,11 @@
       }
     }
 
+    if (PREVIEW_MODE) {
+      state.pendingMovieIds.delete(movieId);
+      return;
+    }
+
     try {
       const data = await apiRequest("/api/movies", {
         method: "PATCH",
@@ -838,6 +1195,11 @@
     const title = actorName.replace(/\s+/g, "_");
     const primaryUrl = `${WIKI_BASE}${encodeURIComponent(title)}`;
     const fallbackUrl = `${WIKI_SEARCH}${encodeURIComponent(actorName)}`;
+
+    if (PREVIEW_MODE) {
+      window.open(primaryUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
 
     try {
       const url = new URL(WIKI_API);
@@ -884,6 +1246,46 @@
     return youtube[0].key || "";
   }
 
+  // Dedicated trailer modal with robust YouTube-nocookie embed and fallback link.
+  function openTrailerModal(trailerKey, trailerTitle, fallbackWatchUrl) {
+    state.activeTrailerEmbedUrl = buildTrailerEmbedUrl(trailerKey);
+    state.activeTrailerWatchUrl =
+      fallbackWatchUrl || `https://www.youtube.com/watch?v=${encodeURIComponent(trailerKey)}`;
+
+    dom.trailerIframe.src = state.activeTrailerEmbedUrl;
+    dom.trailerIframe.title = `Trailer for ${trailerTitle || "movie"}`;
+    dom.trailerFallbackLink.href = state.activeTrailerWatchUrl;
+
+    openModal(dom.trailerModal);
+  }
+
+  function resetTrailerPlayer() {
+    state.activeTrailerEmbedUrl = "";
+    state.activeTrailerWatchUrl = "";
+    dom.trailerIframe.src = "";
+    dom.trailerFallbackLink.href = "#";
+  }
+
+  // Poster lightbox for full-screen poster view with simple tap-outside close.
+  function openPosterModal(posterUrl, movieTitle) {
+    state.activePosterUrl = posterUrl;
+    dom.posterModalImage.src = posterUrl;
+    dom.posterModalImage.alt = `Poster for ${movieTitle || "movie"}`;
+    openModal(dom.posterModal);
+  }
+
+  function buildTrailerEmbedUrl(trailerKey) {
+    const base = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(trailerKey)}`;
+    const params = new URLSearchParams({
+      autoplay: "1",
+      rel: "0",
+      modestbranding: "1",
+      playsinline: "1",
+      origin: window.location.origin,
+    });
+    return `${base}?${params.toString()}`;
+  }
+
   function onDocumentClick(event) {
     const closer = event.target.closest("[data-close-modal]");
     if (!closer) {
@@ -896,11 +1298,27 @@
     } else if (modalType === "movie") {
       closeModal(dom.movieModal);
       state.activeMovieId = null;
+    } else if (modalType === "trailer") {
+      closeModal(dom.trailerModal);
+      resetTrailerPlayer();
+    } else if (modalType === "poster") {
+      closeModal(dom.posterModal);
     }
   }
 
   function onDocumentKeydown(event) {
     if (event.key !== "Escape") {
+      return;
+    }
+
+    if (isModalOpen(dom.posterModal)) {
+      closeModal(dom.posterModal);
+      return;
+    }
+
+    if (isModalOpen(dom.trailerModal)) {
+      closeModal(dom.trailerModal);
+      resetTrailerPlayer();
       return;
     }
 
@@ -941,6 +1359,10 @@
   }
 
   async function apiRequest(path, options = {}) {
+    if (PREVIEW_MODE) {
+      throw new Error("Network requests are disabled in preview mode.");
+    }
+
     const method = options.method || "GET";
     const query = options.query || {};
     const signal = options.signal;
@@ -989,17 +1411,58 @@
   }
 
   function handleUnauthorized() {
+    if (PREVIEW_MODE) {
+      return;
+    }
+
     localStorage.removeItem(APP_SECRET_KEY);
     state.appSecret = "";
     stopSyncPolling();
 
     closeModal(dom.searchModal);
     closeModal(dom.movieModal);
+    closeModal(dom.trailerModal);
+    closeModal(dom.posterModal);
+    resetTrailerPlayer();
 
     renderLockedState();
-    showSecretError("Unauthorized. Enter password again.");
-    promptForSecret();
-    showToast("Unauthorized. Please enter password again.", true);
+    setLockError("Unauthorized. Please enter password again.");
+    dom.lockInput.focus();
+  }
+
+  function buildPreviewDetailBundle(movie) {
+    const trailerKey = extractYouTubeKey(movie.trailer_url || "");
+    return {
+      movie: {
+        release_date: movie.release_date || "",
+        runtime: movie.runtime || null,
+        tagline: movie.tagline || "",
+        overview: movie.overview || "No description available for this movie.",
+        genres: Array.isArray(movie.genres) ? movie.genres.map((name) => ({ name })) : [],
+      },
+      credits: {
+        crew: movie.director ? [{ job: "Director", name: movie.director }] : [],
+        cast: Array.isArray(movie.cast) ? movie.cast.map((name) => ({ name })) : [],
+      },
+      videos: {
+        results: trailerKey
+          ? [{ site: "YouTube", type: "Trailer", official: true, key: trailerKey }]
+          : [],
+      },
+    };
+  }
+
+  function extractYouTubeKey(url) {
+    const value = String(url || "");
+    const embedMatch = /youtube\.com\/embed\/([A-Za-z0-9_-]{6,})/i.exec(value);
+    if (embedMatch) {
+      return embedMatch[1];
+    }
+    const watchMatch = /[?&]v=([A-Za-z0-9_-]{6,})/i.exec(value);
+    if (watchMatch) {
+      return watchMatch[1];
+    }
+    return "";
   }
 
   function showToast(message, isError = false) {
@@ -1023,6 +1486,19 @@
     }
     const match = /^(\d{4})/.exec(dateString);
     return match ? match[1] : "Release date unknown";
+  }
+
+  function formatRuntime(runtimeMinutes) {
+    const runtime = Number(runtimeMinutes);
+    if (!Number.isFinite(runtime) || runtime <= 0) {
+      return "Runtime unavailable";
+    }
+    const hours = Math.floor(runtime / 60);
+    const mins = runtime % 60;
+    if (!hours) {
+      return `${mins}m`;
+    }
+    return `${hours}h ${mins}m`;
   }
 
   function formatRating(rating) {

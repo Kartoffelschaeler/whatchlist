@@ -62,6 +62,17 @@ Set these in your Vercel project:
 - `TMDB_API_KEY`
 - `APP_SECRET`
 
+## Preview Mode
+
+Set `PREVIEW_MODE = true` at the top of `/Users/jakobwinter/Documents/codex/watchlist/app.js` to run a frontend-only demo.
+
+- No password prompt is required.
+- No `/api/*` calls are made.
+- Mock movies are loaded for visual/design and animation review.
+- You can open `/Users/jakobwinter/Documents/codex/watchlist/index.html` directly in a browser.
+
+Set `PREVIEW_MODE = false` to return to the real backend implementation.
+
 ## 5. Local Testing
 
 Recommended local run (includes functions):
@@ -75,7 +86,7 @@ Recommended local run (includes functions):
 3. Run:
    - `vercel dev`
 4. Open the printed local URL.
-5. Enter your shared password in the password modal.
+5. Enter your shared password in the top bar.
 
 Important:
 - Opening `index.html` directly via `file://` will not run serverless functions locally.
