@@ -74,19 +74,38 @@ async function readJsonBody(req) {
   }
 }
 
-function requireSupabaseConfig() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+function requireEnvVars(varNames) {
+  const values = {};
+  const missing = [];
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    const error = new Error("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.");
+  varNames.forEach((name) => {
+    const value = process.env[name];
+    if (!value) {
+      missing.push(name);
+      return;
+    }
+    values[name] = value;
+  });
+
+  if (missing.length) {
+    const error = new Error(`Missing required environment variable(s): ${missing.join(", ")}`);
     error.statusCode = 500;
     throw error;
   }
 
+  return values;
+}
+
+function requireSupabaseConfig() {
+  console.log("ENV CHECK:", {
+    hasUrl: !!process.env.SUPABASE_URL,
+    hasKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  });
+  const env = requireEnvVars(["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]);
+
   return {
-    supabaseUrl: supabaseUrl.replace(/\/+$/, ""),
-    serviceRoleKey,
+    supabaseUrl: env.SUPABASE_URL.replace(/\/+$/, ""),
+    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
   };
 }
 
