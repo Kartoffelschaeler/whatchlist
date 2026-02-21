@@ -125,6 +125,7 @@
 
   const state = {
     appSecret: "",
+    activeListName: "",
     unlocked: false,
     movies: [],
     loadingMovies: false,
@@ -174,12 +175,14 @@
   function enterPreviewMode() {
     state.unlocked = true;
     state.appSecret = "preview-mode";
+    state.activeListName = "Preview";
     state.movies = cloneMovies(DEMO_MOVIES);
     state.previewNextId = Math.max(...state.movies.map((movie) => Number(movie.id)), 0) + 1;
     dom.accessStatus.textContent = "Preview mode";
     dom.secretInlineForm.classList.add("hidden");
     dom.clearSecretBtn.classList.add("hidden");
     dom.addMovieTile.classList.remove("hidden");
+    setActiveListName(state.activeListName);
     setLockError("");
     setLockedUi(false);
     renderMovieSections();
@@ -199,6 +202,7 @@
     dom.lockInput = document.getElementById("lock-input");
     dom.lockSubmitBtn = document.getElementById("lock-submit-btn");
     dom.lockError = document.getElementById("lock-error");
+    dom.activeListName = document.getElementById("active-list-name");
 
     dom.accessStatus = document.getElementById("access-status");
     dom.clearSecretBtn = document.getElementById("clear-secret-btn");
@@ -228,6 +232,7 @@
 
   function bindEvents() {
     dom.clearSecretBtn.addEventListener("click", onChangePasswordClick);
+    dom.activeListName.addEventListener("click", onChangePasswordClick);
     dom.addMovieTile.addEventListener("click", openSearchModal);
 
     dom.lockForm.addEventListener("submit", onSecretSubmit);
@@ -264,13 +269,22 @@
 
   function renderLockedState() {
     state.unlocked = false;
+    state.movies = [];
+    state.activeListName = "";
     dom.accessStatus.textContent = "Locked";
     dom.secretInlineForm.classList.add("hidden");
     dom.clearSecretBtn.classList.add("hidden");
     dom.addMovieTile.classList.add("hidden");
+    setActiveListName("");
     setMovieDeleteButtonVisible(false);
     setLockedUi(true);
     renderMovieSections();
+  }
+
+  function setActiveListName(value) {
+    const label = String(value || "").trim();
+    dom.activeListName.textContent = label || "Current list";
+    dom.activeListName.classList.toggle("hidden", !state.unlocked);
   }
 
   function setMovieDeleteButtonVisible(visible) {
@@ -311,9 +325,11 @@
       state.unlocked = true;
       localStorage.setItem(APP_SECRET_KEY, secret);
       dom.accessStatus.textContent = "Unlocked";
+      state.activeListName = resolveListName(data);
       dom.secretInlineForm.classList.add("hidden");
       dom.clearSecretBtn.classList.remove("hidden");
       dom.addMovieTile.classList.remove("hidden");
+      setActiveListName(state.activeListName);
       setLockedUi(false);
       dom.lockInput.value = "";
 
@@ -344,6 +360,7 @@
   function onChangePasswordClick() {
     if (PREVIEW_MODE) {
       state.movies = cloneMovies(DEMO_MOVIES);
+      state.activeListName = "Preview";
       state.detailCache.clear();
       state.previewNextId = Math.max(...state.movies.map((movie) => Number(movie.id)), 0) + 1;
       closeModal(dom.searchModal);
@@ -351,6 +368,7 @@
       closeModal(dom.trailerModal);
       closeModal(dom.posterModal);
       resetTrailerPlayer();
+      setActiveListName(state.activeListName);
       renderMovieSections();
       showToast("Preview reset.");
       return;
@@ -368,6 +386,39 @@
     setLockError("");
     dom.lockInput.value = "";
     dom.lockInput.focus();
+  }
+
+  function resolveListName(payload) {
+    const list = payload && typeof payload === "object" ? payload.list : null;
+    if (list && typeof list === "object") {
+      const name = String(list.name || "").trim();
+      const id = String(list.id || "").trim();
+      if (name) {
+        return name;
+      }
+      if (id) {
+        return id;
+      }
+    }
+
+    const listName = String(payload?.list_name || "").trim();
+    if (listName) {
+      return listName;
+    }
+
+    const listId = String(payload?.list_id || "").trim();
+    if (listId) {
+      return listId;
+    }
+
+    if (Array.isArray(payload?.movies)) {
+      const firstMovieListId = String(payload.movies[0]?.list_id || "").trim();
+      if (firstMovieListId) {
+        return firstMovieListId;
+      }
+    }
+
+    return "Current list";
   }
 
   async function onSecretSubmit(event) {
