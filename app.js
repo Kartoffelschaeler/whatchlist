@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const PREVIEW_MODE = false;
+  const PREVIEW_MODE = 1;
   const APP_SECRET_KEY = "app_secret";
   const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
   const WIKI_API = "https://en.wikipedia.org/w/api.php";
@@ -990,24 +990,32 @@
 
     dom.movieModalContent.innerHTML = `
       <div class="detail-shell">
-        <div class="detail-hero">
-          <div class="detail-hero-left">
+        <div class="detail-top-grid">
+          <div class="detail-left">
             <h2 class="detail-title">${escapeHtml(movieRow.title)}</h2>
-            <p class="detail-topline">${escapeHtml(topMeta)}</p>
 
-            <div class="detail-actions">
-              <button
-                type="button"
-                class="trailer-btn"
-                data-open-trailer="true"
-                data-trailer-key="${escapeHtml(trailerKey)}"
-                data-trailer-watch="${escapeHtml(trailerWatchUrl)}"
-                data-trailer-title="${escapeHtml(movieRow.title)}"
-                ${trailerUnavailable ? "disabled" : ""}
-              >
-                ${trailerUnavailable ? "Trailer unavailable" : "Trailer"}
-              </button>
-              <span class="runtime-badge">${escapeHtml(runtimeLabel)}</span>
+            <div class="detail-meta-actions">
+              <p class="detail-topline">${escapeHtml(topMeta)}</p>
+
+              <div class="detail-actions">
+                <button
+                  type="button"
+                  class="trailer-btn"
+                  data-open-trailer="true"
+                  data-trailer-key="${escapeHtml(trailerKey)}"
+                  data-trailer-watch="${escapeHtml(trailerWatchUrl)}"
+                  data-trailer-title="${escapeHtml(movieRow.title)}"
+                  ${trailerUnavailable ? "disabled" : ""}
+                >
+                  ${trailerUnavailable ? "Trailer unavailable" : "Trailer"}
+                </button>
+                <span class="runtime-badge">${escapeHtml(runtimeLabel)}</span>
+              </div>
+            </div>
+
+            <div class="detail-desc">
+              ${tagline ? `<p class="detail-tagline">${escapeHtml(tagline)}</p>` : ""}
+              <p class="overview">${escapeHtml(overview)}</p>
             </div>
           </div>
 
@@ -1028,11 +1036,6 @@
               `
               : `<div class="detail-poster-placeholder">Poster unavailable</div>`
           }
-        </div>
-
-        <div class="detail-text">
-          ${tagline ? `<p class="detail-tagline">${escapeHtml(tagline)}</p>` : ""}
-          <p class="overview">${escapeHtml(overview)}</p>
         </div>
 
         <div class="detail-lower">
