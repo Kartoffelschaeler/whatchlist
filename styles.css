@@ -143,27 +143,28 @@ body.modal-open {
   align-items: center;
 }
 
-.active-list-name {
+#active-list-name {
   appearance: none;
   border: none;
   background: transparent;
-  display: block;
-  margin: 2px auto 8px;
-  padding: 6px 10px;
+  display: inline-block;
+  margin: 2px 0 8px;
+  padding: 6px 0;
   border-radius: 999px;
   color: #2a3750;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.12rem;
+  font-weight: 650;
   letter-spacing: 0.01em;
+  text-align: left;
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease;
 }
 
-.active-list-name:hover {
+#active-list-name:hover {
   background: rgba(79, 123, 217, 0.08);
 }
 
-.active-list-name:focus-visible {
+#active-list-name:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px rgba(79, 123, 217, 0.24);
 }
