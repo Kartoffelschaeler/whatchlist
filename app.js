@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const PREVIEW_MODE = 1;
+  const PREVIEW_MODE = 0;
   const APP_SECRET_KEY = "app_secret";
   const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
   const WIKI_API = "https://en.wikipedia.org/w/api.php";
