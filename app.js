@@ -216,6 +216,7 @@
 
     dom.movieModal = document.getElementById("movie-modal");
     dom.movieModalContent = document.getElementById("movie-modal-content");
+    dom.movieDeleteBtn = document.getElementById("movie-delete-btn");
     dom.trailerModal = document.getElementById("trailer-modal");
     dom.trailerIframe = document.getElementById("trailer-iframe");
     dom.trailerFallbackLink = document.getElementById("trailer-fallback-link");
@@ -236,6 +237,7 @@
     dom.watchedGrid.addEventListener("click", onMovieGridClick);
     dom.searchResults.addEventListener("click", onSearchResultsClick);
     dom.movieModalContent.addEventListener("click", onMovieModalContentClick);
+    dom.movieDeleteBtn.addEventListener("click", onMovieDeleteClick);
 
     dom.searchInput.addEventListener(
       "input",
@@ -266,8 +268,14 @@
     dom.secretInlineForm.classList.add("hidden");
     dom.clearSecretBtn.classList.add("hidden");
     dom.addMovieTile.classList.add("hidden");
+    setMovieDeleteButtonVisible(false);
     setLockedUi(true);
     renderMovieSections();
+  }
+
+  function setMovieDeleteButtonVisible(visible) {
+    dom.movieDeleteBtn.classList.toggle("hidden", !visible);
+    dom.movieDeleteBtn.disabled = !visible;
   }
 
   function setLockedUi(isLocked) {
@@ -891,6 +899,7 @@
     }
 
     state.activeMovieId = Number(movieId);
+    setMovieDeleteButtonVisible(Boolean(movie.watched));
     openModal(dom.movieModal);
     renderMovieDetailSkeleton();
 
@@ -1054,6 +1063,54 @@
         </div>
       </div>
     `;
+
+    setMovieDeleteButtonVisible(Boolean(movieRow.watched));
+  }
+
+  async function onMovieDeleteClick() {
+    const movieId = Number(state.activeMovieId);
+    if (!movieId || state.pendingMovieIds.has(movieId)) {
+      return;
+    }
+
+    const movie = state.movies.find((item) => Number(item.id) === movieId);
+    if (!movie || !movie.watched) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete "${movie.title}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    state.pendingMovieIds.add(movieId);
+    const previousMovies = [...state.movies];
+
+    state.movies = state.movies.filter((item) => Number(item.id) !== movieId);
+    renderMovieSections();
+    closeModal(dom.movieModal);
+    state.activeMovieId = null;
+    setMovieDeleteButtonVisible(false);
+
+    if (PREVIEW_MODE) {
+      state.pendingMovieIds.delete(movieId);
+      showToast("Movie deleted.");
+      return;
+    }
+
+    try {
+      await apiRequest("/api/movies", {
+        method: "DELETE",
+        body: { id: movieId },
+      });
+      showToast("Movie deleted.");
+    } catch (error) {
+      state.movies = previousMovies;
+      renderMovieSections();
+      showToast(error.message || "Could not delete movie.", true);
+    } finally {
+      state.pendingMovieIds.delete(movieId);
+    }
   }
 
   function onMovieModalContentClick(event) {
@@ -1298,6 +1355,7 @@
     } else if (modalType === "movie") {
       closeModal(dom.movieModal);
       state.activeMovieId = null;
+      setMovieDeleteButtonVisible(false);
     } else if (modalType === "trailer") {
       closeModal(dom.trailerModal);
       resetTrailerPlayer();
@@ -1325,6 +1383,7 @@
     if (isModalOpen(dom.movieModal)) {
       closeModal(dom.movieModal);
       state.activeMovieId = null;
+      setMovieDeleteButtonVisible(false);
       return;
     }
 

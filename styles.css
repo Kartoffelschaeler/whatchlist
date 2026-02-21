@@ -135,6 +135,11 @@ body.modal-open {
   align-items: center;
 }
 
+#access-status,
+#clear-secret-btn {
+  display: none !important;
+}
+
 .access-widget {
   display: grid;
   justify-items: end;
@@ -458,6 +463,12 @@ body.modal-open {
   font-weight: 600;
 }
 
+.modal-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .icon-btn {
   width: 36px;
   height: 36px;
@@ -492,6 +503,19 @@ body.modal-open {
   stroke-linecap: round;
 }
 
+.icon-trash {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-trash path {
+  fill: none;
+  stroke: #7b8799;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .search-panel {
   width: min(760px, calc(100vw - 24px));
 }
@@ -520,11 +544,11 @@ body.modal-open {
 .search-row {
   display: grid;
   grid-template-columns: 50px 1fr auto;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 8px;
+  padding: 10px 12px;
   background: var(--surface);
 }
 
@@ -563,10 +587,18 @@ body.modal-open {
   width: min(1080px, calc(100vw - 12px));
   max-height: calc(100vh - 12px);
   border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .detail-content {
   padding: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(100vh - 86px);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .detail-shell {
@@ -825,22 +857,47 @@ body.modal-open {
 }
 
 .poster-panel {
-  width: min(96vw, 760px);
+  width: 100vw;
+  max-width: none;
+  max-height: 100vh;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  overflow: visible;
+}
+
+.poster-panel .modal-head {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  border-bottom: none;
+  padding: 0;
+  z-index: 2;
+}
+
+.poster-panel .icon-btn {
+  background: rgba(13, 19, 29, 0.7);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.poster-panel .icon-close path {
+  stroke: #f3f6fc;
 }
 
 .poster-modal-body {
   display: grid;
   place-items: center;
-  padding: 10px;
-  background: #0d121a;
-  max-height: calc(100vh - 80px);
+  height: 100vh;
+  max-height: 100vh;
+  padding: 18px;
+  background: transparent;
 }
 
 .poster-modal-body img {
-  max-width: 100%;
-  max-height: calc(100vh - 110px);
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .footer-note {
@@ -946,6 +1003,7 @@ body.modal-open {
 
   .detail-content {
     padding: 12px;
+    max-height: calc(100vh - 80px);
   }
 
   .detail-hero {
@@ -963,7 +1021,7 @@ body.modal-open {
   }
 
   .poster-panel {
-    width: calc(100vw - 8px);
+    width: 100vw;
   }
 }
 
