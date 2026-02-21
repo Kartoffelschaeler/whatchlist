@@ -13,7 +13,7 @@ Static movie watchlist app with:
 - Backend: Vercel Functions in `/api/*`
 - Browser never talks to Supabase directly
 - Browser sends `x-app-secret` header to every `/api/*` request
-- Backend validates `x-app-secret` against `APP_SECRET`
+- Backend validates `x-app-secret` against `LISTS_JSON` (or `APP_SECRET` as legacy fallback)
 
 ## Files
 
@@ -46,12 +46,24 @@ Notes:
 1. Create a TMDB account and API key.
 2. Save it for Vercel as `TMDB_API_KEY`.
 
-## 3. Shared Password Setup
+## 3. Shared Password / Multi-List Setup
 
-Choose one shared password for all devices and set it as:
-- `APP_SECRET`
+Preferred setup (multiple fixed lists) with `LISTS_JSON`:
 
-Every device must enter this same password in the app.
+```json
+[{"id":"main","name":"Main","password":"1111"},{"id":"friends","name":"Friends","password":"1234"}]
+```
+
+Set that JSON string in Vercel as:
+- `LISTS_JSON`
+
+Behavior:
+- Password `1111` unlocks list `main`
+- Password `1234` unlocks list `friends`
+- Any password not in `LISTS_JSON` returns `401 Unauthorized`
+
+Legacy fallback:
+- If `LISTS_JSON` is not set, backend falls back to single password via `APP_SECRET`.
 
 ## 4. Vercel Environment Variables
 
@@ -60,7 +72,8 @@ Set these in your Vercel project:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `TMDB_API_KEY`
-- `APP_SECRET`
+- `LISTS_JSON` (recommended)
+- `APP_SECRET` (optional legacy fallback)
 
 ## Preview Mode
 
@@ -82,7 +95,8 @@ Recommended local run (includes functions):
    - `vercel env add SUPABASE_URL`
    - `vercel env add SUPABASE_SERVICE_ROLE_KEY`
    - `vercel env add TMDB_API_KEY`
-   - `vercel env add APP_SECRET`
+   - `vercel env add LISTS_JSON` (recommended)
+   - `vercel env add APP_SECRET` (optional legacy fallback)
 3. Run:
    - `vercel dev`
 4. Open the printed local URL.
@@ -96,6 +110,9 @@ Important:
 1. Push repo changes.
 2. Confirm all env vars are present in Vercel.
 3. Redeploy from Vercel dashboard (or push to trigger deployment).
+
+Important:
+- Vercel env var changes require a new deployment/redeploy to take effect.
 
 ## API Endpoints
 
@@ -127,7 +144,7 @@ Implemented endpoints:
 ## Security Notes
 
 - No secrets are stored in frontend source.
-- `TMDB_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `APP_SECRET` stay server-side in Vercel env vars.
+- `TMDB_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `LISTS_JSON`, and `APP_SECRET` stay server-side in Vercel env vars.
 - Frontend stores only the entered shared password in `localStorage` (`app_secret`) for convenience.
 
 ## Attribution

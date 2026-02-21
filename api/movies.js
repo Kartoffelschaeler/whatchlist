@@ -3,7 +3,7 @@ const {
   handleOptions,
   isValidHalfStepRating,
   readJsonBody,
-  requireAppSecret,
+  requireListAccess,
   resolveEnglishTitle,
   sendJson,
   supabaseRequest,
@@ -16,28 +16,30 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  if (!requireAppSecret(req, res)) {
+  const list = requireListAccess(req, res);
+  if (!list) {
     return;
   }
+  const listId = encodeURIComponent(list.id);
 
   try {
     if (req.method === "GET") {
-      await handleGet(res);
+      await handleGet(res, listId);
       return;
     }
 
     if (req.method === "POST") {
-      await handlePost(req, res);
+      await handlePost(req, res, list.id);
       return;
     }
 
     if (req.method === "PATCH") {
-      await handlePatch(req, res);
+      await handlePatch(req, res, listId);
       return;
     }
 
     if (req.method === "DELETE") {
-      await handleDelete(req, res);
+      await handleDelete(req, res, listId);
       return;
     }
 
@@ -54,16 +56,16 @@ module.exports = async function handler(req, res) {
   }
 };
 
-async function handleGet(res) {
+async function handleGet(res, listId) {
   const movies = await supabaseRequest({
     method: "GET",
-    path: "movies?select=*&order=watched.asc,created_at.desc",
+    path: `movies?select=*&list_id=eq.${listId}&order=watched.asc,created_at.desc`,
   });
 
   sendJson(res, 200, { movies: Array.isArray(movies) ? movies : [] });
 }
 
-async function handlePost(req, res) {
+async function handlePost(req, res, listIdRaw) {
   const body = await readJsonBody(req);
   const tmdbId = Number(body.tmdb_id);
 
@@ -80,6 +82,7 @@ async function handlePost(req, res) {
     method: "POST",
     path: "movies",
     body: {
+      list_id: listIdRaw,
       tmdb_id: tmdbId,
       title,
       poster_url: posterUrl,
@@ -93,7 +96,7 @@ async function handlePost(req, res) {
   sendJson(res, 201, { movie });
 }
 
-async function handlePatch(req, res) {
+async function handlePatch(req, res, listId) {
   const body = await readJsonBody(req);
   const id = Number(body.id);
 
@@ -133,7 +136,7 @@ async function handlePatch(req, res) {
 
   const updated = await supabaseRequest({
     method: "PATCH",
-    path: `movies?id=eq.${id}`,
+    path: `movies?id=eq.${id}&list_id=eq.${listId}`,
     body: updates,
     returnRepresentation: true,
   });
@@ -147,7 +150,7 @@ async function handlePatch(req, res) {
   sendJson(res, 200, { movie });
 }
 
-async function handleDelete(req, res) {
+async function handleDelete(req, res, listId) {
   const body = await readJsonBody(req);
   const id = Number(body.id);
 
@@ -158,7 +161,7 @@ async function handleDelete(req, res) {
 
   const deleted = await supabaseRequest({
     method: "DELETE",
-    path: `movies?id=eq.${id}&select=id`,
+    path: `movies?id=eq.${id}&list_id=eq.${listId}&select=id`,
     returnRepresentation: true,
   });
 

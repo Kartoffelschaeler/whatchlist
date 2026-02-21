@@ -1,4 +1,6 @@
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+let cachedListsRaw = null;
+let cachedLists = null;
 
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -30,19 +32,120 @@ function getHeader(req, name) {
 }
 
 function requireAppSecret(req, res) {
-  const expected = process.env.APP_SECRET;
-  if (!expected) {
-    sendJson(res, 500, { error: "APP_SECRET is not configured." });
-    return false;
-  }
-
   const provided = String(getHeader(req, "x-app-secret") || "");
-  if (!provided || provided !== expected) {
+  if (!provided) {
     sendJson(res, 401, { error: "Unauthorized" });
     return false;
   }
 
+  let configuredLists = null;
+  try {
+    configuredLists = getConfiguredLists();
+  } catch (error) {
+    sendJson(res, error.statusCode || 500, { error: error.message || "Invalid LISTS_JSON configuration." });
+    return false;
+  }
+
+  if (configuredLists) {
+    const list = getListFromPassword(provided, configuredLists);
+    if (!list) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return false;
+    }
+    req.authList = list;
+    return true;
+  }
+
+  const expected = process.env.APP_SECRET;
+  if (!expected) {
+    sendJson(res, 500, { error: "LISTS_JSON or APP_SECRET must be configured." });
+    return false;
+  }
+
+  if (provided !== expected) {
+    sendJson(res, 401, { error: "Unauthorized" });
+    return false;
+  }
+
+  req.authList = { id: "main", name: "Main" };
   return true;
+}
+
+function getConfiguredLists() {
+  const raw = process.env.LISTS_JSON;
+  if (!raw) {
+    cachedListsRaw = null;
+    cachedLists = null;
+    return null;
+  }
+
+  if (cachedListsRaw === raw && cachedLists) {
+    return cachedLists;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (_error) {
+    const error = new Error("LISTS_JSON must be valid JSON.");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  if (!Array.isArray(parsed)) {
+    const error = new Error("LISTS_JSON must be a JSON array.");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const normalized = parsed.map((entry, index) => {
+    const id = String(entry?.id || "").trim();
+    const password = String(entry?.password || "");
+    const name = String(entry?.name || id || "").trim();
+
+    if (!id || !password) {
+      const error = new Error(`LISTS_JSON entry at index ${index} requires non-empty "id" and "password".`);
+      error.statusCode = 500;
+      throw error;
+    }
+
+    return { id, name: name || id, password };
+  });
+
+  const passwordSet = new Set();
+  normalized.forEach((entry) => {
+    if (passwordSet.has(entry.password)) {
+      const error = new Error("LISTS_JSON contains duplicate passwords.");
+      error.statusCode = 500;
+      throw error;
+    }
+    passwordSet.add(entry.password);
+  });
+
+  cachedListsRaw = raw;
+  cachedLists = normalized;
+  return cachedLists;
+}
+
+function getListFromPassword(password, preloadedLists) {
+  const lists = preloadedLists || getConfiguredLists();
+  if (!lists) {
+    return null;
+  }
+
+  const match = lists.find((entry) => entry.password === String(password || ""));
+  if (!match) {
+    return null;
+  }
+
+  return { id: match.id, name: match.name };
+}
+
+function requireListAccess(req, res) {
+  if (!requireAppSecret(req, res)) {
+    return null;
+  }
+  return req.authList || { id: "main", name: "Main" };
 }
 
 async function readJsonBody(req) {
@@ -209,10 +312,12 @@ function resolveEnglishTitle(tmdbMovie) {
 
 module.exports = {
   callTmdb,
+  getListFromPassword,
   handleOptions,
   isValidHalfStepRating,
   readJsonBody,
   requireAppSecret,
+  requireListAccess,
   resolveEnglishTitle,
   sendJson,
   supabaseRequest,
